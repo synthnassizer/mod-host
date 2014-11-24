@@ -294,12 +294,18 @@ static void monitor_addr_set_cb(proto_t *proto)
 static void effects_map_cb(proto_t *proto)
 {
     int resp;
-    resp = effects_map_parameter(atoi(proto->list[1]), proto->list[2]);
+    int midi_cc_idx;
+    if (proto->list[3] != NULL)
+		midi_cc_idx = atoi(proto->list[3]);
+	else
+		midi_cc_idx = -1;
+		
+    resp = effects_map_parameter(atoi(proto->list[1]), proto->list[2], midi_cc_idx);
 
     char buffer[128];
     sprintf(buffer, "resp %i", resp);
 
-    if (resp == 0 && (g_verbose || g_interactive))
+    if (resp == 0 && (g_verbose || g_interactive) && proto->list[3] == NULL)
     {
         strcat(buffer, "\nMIDI learning: move the controller to assign it to parameter");
     }

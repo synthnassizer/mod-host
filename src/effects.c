@@ -541,7 +541,6 @@ static int ProcessMidi(jack_nframes_t nframes, void *arg)
                     g_midi_learning->midi_value = value;
                     UpdateValueFromMidi(g_midi_learning);
                     g_midi_learning = NULL;
-
                     // TODO: notify the user that I learned! (don't use printf)
                 }
                 else
@@ -1431,7 +1430,7 @@ int effects_set_parameter(int effect_id, const char *control_symbol, float value
                 return SUCCESS;
             }
         }
-
+        
         // try to find the symbol and set the new value
         for (i = 0; i < g_effects[effect_id].input_control_ports_count; i++)
         {
@@ -1702,7 +1701,7 @@ int effects_get_parameter_info(int effect_id, const char *control_symbol, float 
     return ERR_LV2_INVALID_PARAM_SYMBOL;
 }
 
-int effects_map_parameter(int effect_id, const char *control_symbol)
+int effects_map_parameter(int effect_id, const char *control_symbol, const int midi_cc_idx)
 {
     uint32_t i;
     const char *symbol;
@@ -1737,9 +1736,18 @@ int effects_map_parameter(int effect_id, const char *control_symbol)
             {
                 if (g_midi_cc_list[j].effect_id == -1)
                 {
-                    g_midi_cc_list[j].midi_channel = -1;
-                    g_midi_cc_list[j].midi_controller = -1;
-                    g_midi_cc_list[j].midi_value = -1;
+					if (midi_cc_idx == -1)
+					{
+						g_midi_cc_list[j].midi_channel = -1;
+						g_midi_cc_list[j].midi_controller = -1;
+						g_midi_cc_list[j].midi_value = -1;
+					}
+					else
+					{				
+						g_midi_cc_list[j].midi_channel = 0;
+						g_midi_cc_list[j].midi_controller = midi_cc_idx;
+						g_midi_cc_list[j].midi_value = 64;
+                    }
                     g_midi_cc_list[j].effect_id = effect_id;
                     g_midi_cc_list[j].symbol = symbol;
                     g_midi_cc_list[j].port_buffer = g_effects[effect_id].control_ports[i]->buffer;
@@ -1750,7 +1758,11 @@ int effects_map_parameter(int effect_id, const char *control_symbol)
                     g_midi_cc_list[j].properties.toggled = lilv_port_has_property(lilv_plugin, lilv_port, g_toggled_lilv_node);
                     g_midi_cc_list[j].properties.logarithmic = lilv_port_has_property(lilv_plugin, lilv_port, g_logarithmic_lilv_node);
                     g_midi_cc_list[j].properties.trigger = lilv_port_has_property(lilv_plugin, lilv_port, g_trigger_lilv_node);
-                    g_midi_learning = &g_midi_cc_list[j];
+                    
+                    if (midi_cc_idx == -1)
+						g_midi_learning = &g_midi_cc_list[j];
+					//else
+					//	UpdateValueFromMidi(&g_midi_cc_list[j]);
 
                     return SUCCESS;
                 }
