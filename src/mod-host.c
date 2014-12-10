@@ -102,9 +102,9 @@ monitor <addr> <port> <status>\n\
     if status = 1 start monitoring\n\
     if status = 0 stop monitoring\n\
 \n\
-map <instance_number> <param_symbol>\n\
-    maps a MIDI controller to control a parameter\n\
-    e.g.: map 0 gain\n\
+map <instance_number> <param_symbol> <midi_channel> <midi_cc>\n\
+    maps a MIDI controller (channel and ctrl number) to control a parameter\n\
+    e.g.: map 0 gain 16 127\n\
 \n\
 unmap <instance_number> <param_symbol>\n\
     unmaps a MIDI controller\n\
@@ -294,18 +294,22 @@ static void monitor_addr_set_cb(proto_t *proto)
 static void effects_map_cb(proto_t *proto)
 {
     int resp;
-    int midi_cc_idx;
+    int midi_cc_idx , midi_ch;
     if (proto->list[3] != NULL)
-		midi_cc_idx = atoi(proto->list[3]);
+		midi_ch = atoi(proto->list[3]);
+	else
+		midi_ch = -1;
+    if (proto->list[4] != NULL)
+		midi_cc_idx = atoi(proto->list[4]);
 	else
 		midi_cc_idx = -1;
-		
-    resp = effects_map_parameter(atoi(proto->list[1]), proto->list[2], midi_cc_idx);
+
+    resp = effects_map_parameter(atoi(proto->list[1]), proto->list[2], midi_ch, midi_cc_idx);
 
     char buffer[128];
     sprintf(buffer, "resp %i", resp);
 
-    if (resp == 0 && (g_verbose || g_interactive) && proto->list[3] == NULL)
+    if (resp == 0 && (g_verbose || g_interactive) && (proto->list[3] == NULL || proto->list[4] == NULL))
     {
         strcat(buffer, "\nMIDI learning: move the controller to assign it to parameter");
     }

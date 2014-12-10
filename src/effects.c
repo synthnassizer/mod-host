@@ -1701,7 +1701,7 @@ int effects_get_parameter_info(int effect_id, const char *control_symbol, float 
     return ERR_LV2_INVALID_PARAM_SYMBOL;
 }
 
-int effects_map_parameter(int effect_id, const char *control_symbol, const int midi_cc_idx)
+int effects_map_parameter(int effect_id, const char *control_symbol, const int midi_ch, const int midi_cc_idx)
 {
     uint32_t i;
     const char *symbol;
@@ -1737,17 +1737,20 @@ int effects_map_parameter(int effect_id, const char *control_symbol, const int m
                 if (g_midi_cc_list[j].effect_id == -1)
                 {
 					if (midi_cc_idx == -1)
-					{
-						g_midi_cc_list[j].midi_channel = -1;
 						g_midi_cc_list[j].midi_controller = -1;
-						g_midi_cc_list[j].midi_value = -1;
-					}
 					else
-					{				
-						g_midi_cc_list[j].midi_channel = 0;
 						g_midi_cc_list[j].midi_controller = midi_cc_idx;
-						g_midi_cc_list[j].midi_value = 64;
-                    }
+					
+					if (midi_ch == -1)
+						g_midi_cc_list[j].midi_channel = -1;
+					else
+						g_midi_cc_list[j].midi_channel = midi_ch;
+						
+					if (midi_cc_idx == -1 || midi_ch == -1)
+						g_midi_cc_list[j].midi_value = -1;
+					else			
+						g_midi_cc_list[j].midi_value = 0;
+						
                     g_midi_cc_list[j].effect_id = effect_id;
                     g_midi_cc_list[j].symbol = symbol;
                     g_midi_cc_list[j].port_buffer = g_effects[effect_id].control_ports[i]->buffer;
@@ -1759,7 +1762,7 @@ int effects_map_parameter(int effect_id, const char *control_symbol, const int m
                     g_midi_cc_list[j].properties.logarithmic = lilv_port_has_property(lilv_plugin, lilv_port, g_logarithmic_lilv_node);
                     g_midi_cc_list[j].properties.trigger = lilv_port_has_property(lilv_plugin, lilv_port, g_trigger_lilv_node);
                     
-                    if (midi_cc_idx == -1)
+                    if (midi_cc_idx == -1 || midi_ch == -1)
 						g_midi_learning = &g_midi_cc_list[j];
 					//else
 					//	UpdateValueFromMidi(&g_midi_cc_list[j]);
