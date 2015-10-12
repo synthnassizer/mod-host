@@ -453,7 +453,8 @@ int main(int argc, char **argv)
     struct arg_lit *_verbose = arg_lit0("v", "verbose,debug", "verbose messages");
     struct arg_int *_socket = arg_int0("p", "socket-port", "<port>", "socket port definition");
     struct arg_lit *_interactive = arg_lit0("i", "interactive", "interactive mode");
-    struct arg_lit *_help = arg_lit0("h", "help", "print this help and exit");
+    struct arg_lit *_help = arg_lit0("h", "help", HELP_MESSAGE);
+    //struct arg_lit *_help = arg_lit0("h", "help", "print this help and exit");
     struct arg_end *_end = arg_end(20);
     void *argtable[] = {_verbose, _socket, _interactive, _help, _end};
 
